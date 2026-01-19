@@ -29,14 +29,46 @@
 int pos;
 Adafruit_PWMServoDriver pwm = Adafruit_PWMServoDriver(PCA9685_ADDR);
 
+//Classe máquina de estados vinda do código do display do trabalho 1
+typedef struct {
+  int state;
+  unsigned long tes;   // time entering state
+  unsigned long tis;   // time in state
+} fsm_t;
+
+fsm_t fsm;
+
+//Estados fsm
+enum {
+  Aranha_deitada = 0,     // estado inicial
+  Aranha_a_levantar,     // executa Levanta_Aranha()
+  Aranha_em_pe,          // estado estável
+  Aranha_a_deitar,       // executa Deita_Aranha()
+  Aranha_a_andar,          // (futuro)
+};
+
 // Forward declaration
 void moveServo(uint8_t channel, uint8_t angle);
 void Levanta_Aranha();
 void Deita_Aranha();
+void fsm_update();
+void set_state(fsm_t &fsm, int new_state);
+
+// Bloco para utilizarmos o Serial para transição de estados
+char cmd = 0;
+
+void read_serial() {
+  if (Serial.available()) {
+    cmd = Serial.read();
+  } else {
+    cmd = 0;
+  }
+}
 
 void setup() {
   Serial.begin(115200);
   delay(1000);
+  set_state(fsm, Aranha_em_pe);
 
   Serial.println("Inicializando PCA9685...");
 
@@ -75,6 +107,11 @@ void setup() {
 }
 
 void loop() {
+
+  read_serial();
+  fsm_update();
+
+
 /* 
   
   // Passo para a frente
@@ -168,5 +205,49 @@ void Deita_Aranha(){
     moveServo(10,dezpe+pos);
     moveServo(12,dozepe+pos);
     delay(50);
+  }
+
+}
+
+// Função que chama set_state e cumpre a lógica da máquina de estaddos com transições a utilizar o serial monitor
+void fsm_update() {
+  fsm.tis = millis() - fsm.tes;
+
+  switch (fsm.state) {
+
+    case Aranha_deitada:
+      if (cmd == 'l') {     // l no serial monitor faz com que a aranha levante
+        set_state(fsm, Aranha_a_levantar);
+      }
+      break;
+
+    case Aranha_a_levantar:
+      Levanta_Aranha();
+      set_state(fsm, Aranha_em_pe);
+      break;
+
+    case Aranha_em_pe:
+      if (cmd == 'd') {     // d no serial monitor faz com que a aranha deite
+        set_state(fsm, Aranha_a_deitar);
+      }
+      break;
+
+    case Aranha_a_deitar:
+      Deita_Aranha();
+      set_state(fsm, Aranha_deitada);
+      break;
+
+    case Aranha_a_andar:
+      // futuro
+      break;
+  }
+}
+
+//função para transição de estados
+void set_state(fsm_t &fsm, int new_state) {
+  if (fsm.state != new_state) {
+    fsm.state = new_state;
+    fsm.tes = millis();
+    fsm.tis = 0;
   }
 }
