@@ -19,11 +19,11 @@
 #define trespe 90
 #define quatrope 65
 #define cincope 65
-#define oitope 15
+#define oitope 25
 #define novepe 115
 #define dezpe 50
 #define onzepe 80
-#define dozepe 30
+#define dozepe 60
 #define trezepe 90
 
 int pos;
@@ -55,7 +55,7 @@ void setup() {
 
   // Teste: mover servo do canal 0 para posição central
   pos=0;
-  moveServo(0,zerope);      //NAO CALIBRADO!!!  // CALIBRADA EM PÉ -> 45      Levantada para mover -> 90
+  moveServo(0,zerope);     // CALIBRADA EM PÉ -> 45      Levantada para mover -> 90
   moveServo(1,umpe);       // CALIBRADA EM PÉ -> 120     
   moveServo(2,doispe);        // CALIBRADA EM PÉ -> 55      Levantada para mover -> 100
   moveServo(3,trespe);        // CALIBRADA EM PÉ -> 90      
@@ -63,11 +63,11 @@ void setup() {
   moveServo(5,cincope);        // CALIBRADA EM PÉ -> 65      
   //moveServo(6,90);
   //moveServo(7,90);
-  moveServo(8,oitope);        // CALIBRADA EM PÉ -> 15      Levantada para mover -> 70
+  moveServo(8,oitope);        // CALIBRADA EM PÉ -> 25      Levantada para mover -> 70
   moveServo(9,novepe);       // CALIBRADA EM PÉ -> 115     
   moveServo(10,dezpe);       // CALIBRADA EM PÉ -> 50      Levantada para mover -> 95
-  moveServo(11,onzepe);       // NAO CALIBRADO!!!!!  // CALIBRADA EM PÉ -> 80      
-  moveServo(12,dozepe);       // NAO CALIBRADO!!!!  // CALIBRADA EM PÉ -> 30      Levantada para mover -> 75
+  moveServo(11,onzepe);       // CALIBRADA EM PÉ -> 80      
+  moveServo(12,dozepe);        // CALIBRADA EM PÉ -> 60      Levantada para mover -> 75
   moveServo(13,trezepe);       // CALIBRADA EM PÉ -> 90      
   //moveServo(14,90); 
   moveServo(15,90);
@@ -75,8 +75,9 @@ void setup() {
 }
 
 void loop() {
-  // Passo para a frente
+/* 
   
+  // Passo para a frente
   //Levanta primeiro as patas 0 4 e 10 amplitude 45º
   for (pos=0;pos<45;pos++){
     moveServo(0,zerope+pos);
@@ -89,7 +90,7 @@ void loop() {
   /*moveServo(0,zerope);
   moveServo(4,quatrope);
   moveServo(10,dezpe);
-  delay(5000);*/
+  delay(5000);
   
   //Arrasta as patas do chao para a frente (servos de cima), mover 3 9 13 para a frente/trás amplitude 30º
   for (pos=0;pos<30;pos++){
@@ -115,10 +116,10 @@ void loop() {
   moveServo(4,quatrope);
   moveServo(10,dezpe);
   delay(5000);
+    */
 
 
-
-         /* ROTINA DEITA E LEVANTA
+   /* ROTINA DEITA E LEVANTA
   Deita_Aranha();
   delay(2000);
   
