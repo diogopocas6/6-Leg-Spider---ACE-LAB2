@@ -18,7 +18,7 @@
 #define quatrope 65
 #define oitope 25
 #define dezpe 50
-#define dozepe 30
+#define dozepe 60
 
 #define umpe 120
 #define trespe 90
@@ -105,11 +105,11 @@ void moveServo(uint8_t channel, uint8_t angle) {
   uint16_t pulse = map(angle, 0, 180, SERVO_MIN, SERVO_MAX);
   pwm.setPWM(channel, 0, pulse);
 
-  Serial.print("Servo ");
+  /*Serial.print("Servo ");
   Serial.print(channel);
   Serial.print(" -> ");
   Serial.print(angle);
-  Serial.println(" graus");
+  Serial.println(" graus");*/
 }
 
 void Levanta_Aranha(){
@@ -135,55 +135,119 @@ void Deita_Aranha(){
     delay(50);
   }
 }
+// função UmPasso dá vários passos seguidos 
 void UmPasso()
 {
-  for (pos=0; pos<=40; pos=pos+2){//sobem A
+  Serial.println("A - Passo 1");
+   for (pos=0; pos<=30; pos=pos+2){//sobem A
     moveServo(0,zerope+pos);
     moveServo(4,quatrope+pos);
     moveServo(10,dezpe+pos);
     delay(15);
   }
-    delay(30);
+    delay(200);
 
+  Serial.println("A - Passo 2");
   for (pos=0; pos<=30; pos=pos+2){//mexem A1
     moveServo(1,umpe-pos);
     moveServo(5,cincope-pos);
     moveServo(11,onzepe+pos);
     delay(15);
   }
-    delay(30);
+    delay(200);
 
-
-  for (pos=0; pos<=40; pos=pos+2){//descem A
-    moveServo(0,zerope+40-pos);
-    moveServo(4,quatrope+40-pos);
-    moveServo(10,dezpe+40-pos);
+  Serial.println("A - Passo 3");
+  for (pos=0; pos<=30; pos=pos+2){//descem A
+    moveServo(0,zerope+30-pos);
+    moveServo(4,quatrope+30-pos);
+    moveServo(10,dezpe+30-pos);
     delay(15);
   }
-    delay(30);
+    delay(200);
 
-
-  for (pos=0; pos<=40; pos=pos+2){//sobem B
+  Serial.println("A - Passo 4 ");
+  for (pos=0; pos<=30; pos=pos+2){//sobem B
     moveServo(2,doispe+pos);
     moveServo(8,oitope+pos);
     moveServo(12,dozepe+pos);
     delay(15);
   }
-  delay(30);
+  delay(200);
+
+  Serial.println("A - Passo 5");
 for (pos=0; pos<=30; pos=pos+2){//andam A1
     moveServo(1,umpe-30+pos);
     moveServo(5,cincope-30+pos);
     moveServo(11,onzepe+30-pos);
     delay(15);
   }
-    delay(30);
+    delay(200);
 
-    for (pos=0; pos<=40; pos=pos+2){//descem B
-    moveServo(2,doispe+40-pos);
-    moveServo(8,oitope+40-pos);
-    moveServo(12,dozepe+40-pos);
+    Serial.println("A - Passo 6");
+    for (pos=0; pos<=30; pos=pos+2){//descem B
+    moveServo(2,doispe+30-pos);
+    moveServo(8,oitope+30-pos);
+    moveServo(12,dozepe+30-pos);
+    delay(15);
+  } 
+
+  delay(200); 
+  
+  //------------------------------------------------//
+  // SEGUNDA PARTE DO MOVIMENTO PARA SER DOIS PASSOS//
+  //------------------------------------------------//
+  Serial.println("B - Passo 1");
+  for (pos=0; pos<=30; pos=pos+2){//sobem B
+    moveServo(2,doispe+pos);
+    moveServo(8,oitope+pos);
+    moveServo(12,dozepe+pos);
     delay(15);
   }
-  delay(30);
+    delay(200);
+
+  Serial.println("B - Passo 2");
+  for (pos=0; pos<=30; pos=pos+2){//mexem B1
+    moveServo(3,trespe-pos);
+    moveServo(9,novepe-pos);
+    moveServo(13,trezepe+pos);
+    delay(15);
+  }
+  delay(200);
+
+  Serial.println("B - Passo 3");
+  for (pos=0; pos<=30; pos=pos+2){//descem B
+    moveServo(2,doispe+30-pos);
+    moveServo(8,oitope+30-pos);
+    moveServo(12,dozepe+30-pos);
+    delay(15);
+  }
+  delay(200);
+
+  Serial.println("B - Passo 4");
+  for (pos=0; pos<=30; pos=pos+2){//sobem A
+    moveServo(0,zerope+pos);
+    moveServo(4,quatrope+pos);
+  moveServo(10,dezpe+pos);
+    delay(15);
+  }
+  delay(200);
+
+  Serial.println("B - Passo 5");
+  for (pos=0; pos<=30; pos=pos+2){//andam B1
+    moveServo(3,trespe-30+pos);
+    moveServo(9,novepe-30+pos);
+    moveServo(13,trezepe+30-pos);
+    delay(15);
+  }
+    delay(200);
+
+Serial.println("B - Passo 6");
+for (pos=0; pos<=30; pos=pos+2){//descem A
+  moveServo(0,zerope+30-pos);
+  moveServo(4,quatrope+30-pos);
+  moveServo(10,dezpe+30-pos);
+  delay(15);
+} 
+delay(200);
 
 }
