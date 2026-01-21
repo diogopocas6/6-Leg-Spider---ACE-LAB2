@@ -15,15 +15,15 @@
 
 #define zerope 40
 #define umpe 120
-#define doispe 55
+#define doispe 35
 #define trespe 90
 #define quatrope 65
 #define cincope 65
-#define oitope 25
+#define oitope 70
 #define novepe 115
-#define dezpe 50
+#define dezpe 70
 #define onzepe 80
-#define dozepe 60
+#define dozepe 50
 #define trezepe 90
 
 int pos;
