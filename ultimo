@@ -101,14 +101,12 @@
   void read_serial() {
     if (Serial.available()) {
       cmd = Serial.read();
-    } else {
-      cmd = 0;
     }
   }
     //Função para utilizar comunicação wifi
 void read_wifi() {
   if (!client || !client.connected()) {
-    client = server.available();
+    client = server.accept();
     return;
   }
 
@@ -138,7 +136,7 @@ void logMsg(const char* msg) {
 
   void setup() {
       pinMode(TRIG_PIN, OUTPUT);
-      pinMode(ECHO_PIN, INPUT_PULLDOWN); 
+      pinMode(ECHO_PIN, INPUT_PULLDOWN);   
 
     Serial.begin(115200);
     delay(1000);
@@ -177,7 +175,9 @@ void logMsg(const char* msg) {
     moveServo(13,trezepe);       // CALIBRADA EM PÉ -> 90      
     //moveServo(14,90); 
     moveServo(15,90);
-      Serial.println("Ligando ao WiFi...");
+      
+  delay(2000);
+  Serial.println("Ligando ao WiFi...");
         WiFi.begin(ssid, password);
         while (WiFi.status() != WL_CONNECTED) {
     delay(500);
@@ -189,8 +189,6 @@ void logMsg(const char* msg) {
 
   server.begin();
   Serial.println("Servidor TCP iniciado na porta 1234");
-
-  delay(3000);
   }
 
   void loop() {
