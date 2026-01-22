@@ -57,7 +57,8 @@
     Aranha_a_andar,               // Executa Walk()
     Aranha_velocidade_levantar,   // estado para escolher velocidade da rotina Levanta_Aranha()
     Aranha_velocidade_deitar,      // estado para escolher velocidade da rotina Deita_Aranha()
-    Aranha_velocidade_andar       // estado para escolher velocidade da rotina Walk()
+    Aranha_velocidade_andar,      // estado para escolher velocidade da rotina Walk()
+    Aranha_a_virar
   };
 
   // Forward declaration
@@ -68,6 +69,8 @@
   void fsm_update();
   void set_state(fsm_t &fsm, int new_state);
   void ResetToNeutral();
+  void Turn();
+  
 
   // Bloco para utilizarmos o Serial para transição de estados
   char cmd = 0;
@@ -201,6 +204,137 @@
     }
 
   }
+  void Turn(){//Função que faz o robô virar
+    int delay_servos, incremento;
+    delay_servos = 30; incremento = 2;
+    const int AMP_ELBOW = 30;
+    const int AMP_SHOULDER = 25;
+    static int fase = 0;
+    static int stepPos = 0;  
+    static unsigned long lastTime = 0;
+    if (cmd == 's') { fase = 0; stepPos = 0; ResetToNeutral(); set_state(fsm, Aranha_a_andar); return; }
+    if (millis() - lastTime < (unsigned long)delay_servos) return;
+    lastTime = millis();
+  switch(fase)
+    {
+        case 0:{//levantar A
+        moveServo(0,zerope +stepPos);
+        moveServo(4,quatrope +stepPos);
+        moveServo(10,dezpe +stepPos);
+        stepPos += incremento;
+        if(stepPos>=AMP_ELBOW)
+        {
+        stepPos = 0;
+        fase++;
+        }
+        break;
+        }
+        case 1:{//Turn A 
+            moveServo(1,umpe-stepPos);
+            moveServo(5,cincope-stepPos);
+            moveServo(11,onzepe-stepPos);
+            stepPos += incremento;
+            if(stepPos>=AMP_SHOULDER)
+            {
+                stepPos = 0;
+                fase++;
+                break;
+            }
+            break;
+        }
+        case 2:{//Baixar A
+            moveServo(0,zerope +AMP_ELBOW -stepPos);
+            moveServo(4,quatrope +AMP_ELBOW -stepPos);
+            moveServo(10,dezpe +AMP_ELBOW -stepPos);
+            stepPos += incremento;
+            if(stepPos>=AMP_ELBOW)
+            {
+                stepPos = 0;
+                fase++;
+                break;
+            }
+            break;
+        }
+        case 3:{//levantar B
+            moveServo(2,doispe +stepPos);
+            moveServo(8,oitope +stepPos);
+            moveServo(12,dozepe +stepPos);
+            stepPos += incremento;
+            if(stepPos>=AMP_ELBOW)
+            {
+            stepPos = 0;
+            fase++;
+            break;
+            }
+            break;
+        }
+        case 4:{//A back to the normal position
+            moveServo(1,umpe-AMP_SHOULDER +stepPos);
+            moveServo(5,cincope-AMP_SHOULDER +stepPos);
+            moveServo(11,onzepe-AMP_SHOULDER +stepPos);
+            stepPos += incremento;
+            if(stepPos>=AMP_SHOULDER)
+            {
+                stepPos = 0;
+                fase++;
+                break;
+            }
+            break;
+        }
+        case 5:{//Andar B a frente
+            moveServo(3,trespe+stepPos);
+            moveServo(9,novepe+stepPos);
+            moveServo(13,trezepe+stepPos);
+            stepPos += incremento;
+            if(stepPos>=AMP_SHOULDER)
+            {
+                stepPos = 0;
+                fase++;
+                break;
+            }
+            break;
+        }
+        case 6:{//Baixar B
+            moveServo(2,doispe +AMP_ELBOW -stepPos);
+            moveServo(8,oitope +AMP_ELBOW -stepPos);
+            moveServo(12,dozepe +AMP_ELBOW -stepPos);
+            stepPos += incremento;
+            if(stepPos>=AMP_ELBOW)
+            {
+                stepPos = 0;
+                fase++;
+                break;
+            }
+            break;
+        }
+        case 7:{//levantar A
+            moveServo(0,zerope +stepPos);
+            moveServo(4,quatrope +stepPos);
+            moveServo(10,dezpe +stepPos);
+            stepPos += incremento;
+            if(stepPos>=AMP_ELBOW)
+            {
+                stepPos = 0;
+                fase++;
+                break;
+            }
+            break;
+        }
+        case 8:{//Andar B pra trás
+            moveServo(3,trespe+AMP_SHOULDER -stepPos);
+            moveServo(9,novepe+AMP_SHOULDER -stepPos);
+            moveServo(13,trezepe+AMP_SHOULDER -stepPos);
+            stepPos += incremento;
+            if(stepPos>=AMP_SHOULDER)
+            {
+                stepPos = 0;
+                fase=1;
+                break;
+            }
+            break;
+        }
+    }
+}
   //Função que faz robô andar
 void WalkStep(int velocidade) {
   int delay_servos, incremento;
@@ -211,8 +345,9 @@ void WalkStep(int velocidade) {
   static unsigned long lastTime = 0;
   if (velocidade == 1) { delay_servos = 50; incremento = 1; }
   else if (velocidade ==2)  { delay_servos = 30; incremento = 2; }
-  else{ delay_servos = 20; incremento = 5; }
+  else if (velocidade == 3) { delay_servos = 20; incremento = 5; }
   if (cmd == 's') { fase = 0; stepPos = 0; ResetToNeutral(); set_state(fsm, Aranha_em_pe); return; }
+  if (cmd == 't') { fase = 0; stepPos = 0; ResetToNeutral(); set_state(fsm,Aranha_a_virar); return; }
   if (millis() - lastTime < (unsigned long)delay_servos) return;
   lastTime = millis();
   switch(fase){
@@ -419,7 +554,11 @@ void ResetToNeutral() {
       case Aranha_a_andar:
         WalkStep(speed_w);
         break;
-        }
+      case Aranha_a_virar:
+        Turn();
+        break;
+      }
+
       }
 
   //função para transição de estados
