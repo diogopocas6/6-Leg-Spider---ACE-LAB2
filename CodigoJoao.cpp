@@ -21,7 +21,7 @@
   #define oitope 70
   #define novepe 115
   #define dezpe 70
-  #define onzepe 80
+  #define onzepe 70
   #define dozepe 50
   #define trezepe 90
 
@@ -58,7 +58,10 @@
     Aranha_velocidade_levantar,   // estado para escolher velocidade da rotina Levanta_Aranha()
     Aranha_velocidade_deitar,      // estado para escolher velocidade da rotina Deita_Aranha()
     Aranha_velocidade_andar,      // estado para escolher velocidade da rotina Walk()
-    Aranha_a_virar
+    Aranha_a_virar_direita,
+    Aranha_a_virar_esquerda,
+    Aranha_velocidade_rodardireita,
+    Aranha_velocidade_rodaresquerda
   };
 
   // Forward declaration
@@ -69,8 +72,8 @@
   void fsm_update();
   void set_state(fsm_t &fsm, int new_state);
   void ResetToNeutral();
-  void Turn();
-  
+  void TurnL(int velocidade);
+  void TurnR(int velocidade);
 
   // Bloco para utilizarmos o Serial para transição de estados
   char cmd = 0;
@@ -204,15 +207,17 @@
     }
 
   }
-  void Turn(){//Função que faz o robô virar
+  void TurnR(int velocidade){//Função que faz o robô virar
     int delay_servos, incremento;
-    delay_servos = 30; incremento = 2;
+    if (velocidade == 1) { delay_servos = 50; incremento = 1; }
+  else if (velocidade ==2)  { delay_servos = 30; incremento = 2; }
+  else if (velocidade == 3) { delay_servos = 20; incremento = 5; }
     const int AMP_ELBOW = 30;
     const int AMP_SHOULDER = 25;
     static int fase = 0;
     static int stepPos = 0;  
     static unsigned long lastTime = 0;
-    if (cmd == 's') { fase = 0; stepPos = 0; ResetToNeutral(); set_state(fsm, Aranha_a_andar); return; }
+    if (cmd == 's') { fase = 0; stepPos = 0; ResetToNeutral(); set_state(fsm, Aranha_em_pe); return; }
     if (millis() - lastTime < (unsigned long)delay_servos) return;
     lastTime = millis();
   switch(fase)
@@ -272,6 +277,139 @@
             moveServo(1,umpe-AMP_SHOULDER +stepPos);
             moveServo(5,cincope-AMP_SHOULDER +stepPos);
             moveServo(11,onzepe-AMP_SHOULDER +stepPos);
+            stepPos += incremento;
+            if(stepPos>=AMP_SHOULDER)
+            {
+                stepPos = 0;
+                fase++;
+                break;
+            }
+            break;
+        }
+        case 5:{//Andar B a frente
+            moveServo(3,trespe-stepPos);
+            moveServo(9,novepe-stepPos);
+            moveServo(13,trezepe-stepPos);
+            stepPos += incremento;
+            if(stepPos>=AMP_SHOULDER)
+            {
+                stepPos = 0;
+                fase++;
+                break;
+            }
+            break;
+        }
+        case 6:{//Baixar B
+            moveServo(2,doispe +AMP_ELBOW -stepPos);
+            moveServo(8,oitope +AMP_ELBOW -stepPos);
+            moveServo(12,dozepe +AMP_ELBOW -stepPos);
+            stepPos += incremento;
+            if(stepPos>=AMP_ELBOW)
+            {
+                stepPos = 0;
+                fase++;
+                break;
+            }
+            break;
+        }
+        case 7:{//levantar A
+            moveServo(0,zerope +stepPos);
+            moveServo(4,quatrope +stepPos);
+            moveServo(10,dezpe +stepPos);
+            stepPos += incremento;
+            if(stepPos>=AMP_ELBOW)
+            {
+                stepPos = 0;
+                fase++;
+                break;
+            }
+            break;
+        }
+        case 8:{//Andar B pra trás
+            moveServo(3,trespe-AMP_SHOULDER +stepPos);
+            moveServo(9,novepe-AMP_SHOULDER +stepPos);
+            moveServo(13,trezepe-AMP_SHOULDER +stepPos);
+            stepPos += incremento;
+            if(stepPos>=AMP_SHOULDER)
+            {
+                stepPos = 0;
+                fase=1;
+                break;
+            }
+            break;
+        }
+    }
+}
+void TurnL(int velocidade){//Função que faz o robô virar
+    int delay_servos, incremento;
+    if (velocidade == 1) { delay_servos = 50; incremento = 1; }
+  else if (velocidade ==2)  { delay_servos = 30; incremento = 2; }
+  else if (velocidade == 3) { delay_servos = 20; incremento = 5; }
+    const int AMP_ELBOW = 30;
+    const int AMP_SHOULDER = 25;
+    static int fase = 0;
+    static int stepPos = 0;  
+    static unsigned long lastTime = 0;
+    if (cmd == 's') { fase = 0; stepPos = 0; ResetToNeutral(); set_state(fsm, Aranha_em_pe); return; }
+    if (millis() - lastTime < (unsigned long)delay_servos) return;
+    lastTime = millis();
+  switch(fase)
+    {
+        case 0:{//levantar A
+        moveServo(0,zerope +stepPos);
+        moveServo(4,quatrope +stepPos);
+        moveServo(10,dezpe +stepPos);
+        stepPos += incremento;
+        if(stepPos>=AMP_ELBOW)
+        {
+        stepPos = 0;
+        fase++;
+        }
+        break;
+        }
+        case 1:{//Turn A 
+            moveServo(1,umpe+stepPos);
+            moveServo(5,cincope+stepPos);
+            moveServo(11,onzepe+stepPos);
+            stepPos += incremento;
+            if(stepPos>=AMP_SHOULDER)
+            {
+                stepPos = 0;
+                fase++;
+                break;
+            }
+            break;
+        }
+        case 2:{//Baixar A
+            moveServo(0,zerope +AMP_ELBOW -stepPos);
+            moveServo(4,quatrope +AMP_ELBOW -stepPos);
+            moveServo(10,dezpe +AMP_ELBOW -stepPos);
+            stepPos += incremento;
+            if(stepPos>=AMP_ELBOW)
+            {
+                stepPos = 0;
+                fase++;
+                break;
+            }
+            break;
+        }
+        case 3:{//levantar B
+            moveServo(2,doispe +stepPos);
+            moveServo(8,oitope +stepPos);
+            moveServo(12,dozepe +stepPos);
+            stepPos += incremento;
+            if(stepPos>=AMP_ELBOW)
+            {
+            stepPos = 0;
+            fase++;
+            break;
+            }
+            break;
+        }
+        case 4:{//A back to the normal position
+            moveServo(1,umpe+AMP_SHOULDER -stepPos);
+            moveServo(5,cincope+AMP_SHOULDER -stepPos);
+            moveServo(11,onzepe+AMP_SHOULDER -stepPos);
             stepPos += incremento;
             if(stepPos>=AMP_SHOULDER)
             {
@@ -347,7 +485,8 @@ void WalkStep(int velocidade) {
   else if (velocidade ==2)  { delay_servos = 30; incremento = 2; }
   else if (velocidade == 3) { delay_servos = 20; incremento = 5; }
   if (cmd == 's') { fase = 0; stepPos = 0; ResetToNeutral(); set_state(fsm, Aranha_em_pe); return; }
-  if (cmd == 't') { fase = 0; stepPos = 0; ResetToNeutral(); set_state(fsm,Aranha_a_virar); return; }
+  if (cmd == 'l') { fase = 0; stepPos = 0; ResetToNeutral();Serial.println("Escolha a velocidade para rodar entre 1 e 3."); set_state(fsm,Aranha_velocidade_rodaresquerda); return; }
+  if (cmd == 'r') { fase = 0; stepPos = 0; ResetToNeutral();Serial.println("Escolha a velocidade para rodar entre 1 e 3."); set_state(fsm,Aranha_velocidade_rodardireita); return; }
   if (millis() - lastTime < (unsigned long)delay_servos) return;
   lastTime = millis();
   switch(fase){
@@ -533,6 +672,29 @@ void ResetToNeutral() {
           }
         }
         break;
+       case Aranha_velocidade_rodardireita:
+        if (cmd != 0) {
+          if (cmd == '1' || cmd == '2' || cmd == '3') {
+            speed_w = cmd - '0';    // se fizessemos simplesmente (int)cmd , o valor não seria 1, por causa da conversão hexadecimal!
+            set_state(fsm,Aranha_a_virar_direita);
+            Serial.println("Para parar o robô, utilize a tecla 's'.");
+          }
+          else {
+            Serial.println("Velocidade inválida!Escolha uma velocidade entre 1 e 3.");
+          }
+        }
+        break;
+        case Aranha_velocidade_rodaresquerda:
+        if (cmd != 0) {
+          if (cmd == '1' || cmd == '2' || cmd == '3') {
+            speed_w = cmd - '0';    // se fizessemos simplesmente (int)cmd , o valor não seria 1, por causa da conversão hexadecimal!
+            set_state(fsm,Aranha_a_virar_esquerda);
+            Serial.println("Para parar o robô, utilize a tecla 's'.");
+          }
+          else {
+            Serial.println("Velocidade inválida!Escolha uma velocidade entre 1 e 3.");
+          }
+        }
 
       case Aranha_em_pe:
         if (cmd == 'd') {     // d no serial monitor faz com que a aranha deite
@@ -542,6 +704,14 @@ void ResetToNeutral() {
         if (cmd == 'w') {     // w no serial monitor faz com que a aranha ande
           set_state(fsm,Aranha_velocidade_andar);
           Serial.println("Escolha a velocidade para andar entre 1 e 3.");
+        }
+        if(cmd=='l'){
+          set_state(fsm,Aranha_velocidade_rodaresquerda);
+          Serial.println("Escolha a velocidade para rodar entre 1 e 3.");
+        }
+        if(cmd=='r'){
+          set_state(fsm,Aranha_velocidade_rodardireita);
+          Serial.println("Escolha a velocidade para rodar entre 1 e 3.");
         }
         break;
       
@@ -554,13 +724,15 @@ void ResetToNeutral() {
       case Aranha_a_andar:
         WalkStep(speed_w);
         break;
-      case Aranha_a_virar:
-        Turn();
+      
+      case Aranha_a_virar_esquerda:
+        TurnL(speed_w);
         break;
-      }
-
-      }
-
+      case Aranha_a_virar_direita:
+        TurnR(speed_w);
+        break;
+    }
+  }
   //função para transição de estados
   void set_state(fsm_t &fsm, int new_state) {
     if (fsm.state != new_state) {
