@@ -1,3 +1,4 @@
+  #include <WiFi.h>
   #include <Wire.h> 
   #include <Adafruit_PWMServoDriver.h>
   #include <Arduino.h>
@@ -42,6 +43,12 @@
   const int ELBOW_BASE[6] = { zerope, doispe, quatrope, oitope, dezpe, dozepe };
   const int SHOULDER_BASE[6] = { umpe, trespe, cincope, novepe, onzepe, trezepe };
 
+
+    //Configurações de Wifi
+  const char* ssid = "Wifi_aranha";
+  const char* password = "Senha123";
+  WiFiServer server(1234);   // 1234 é o número da porta
+  WiFiClient client;
 
 
 
@@ -94,13 +101,41 @@
   void read_serial() {
     if (Serial.available()) {
       cmd = Serial.read();
-    } else {
-      cmd = 0;
-    }
+    } 
+  }   
+    //Função para utilizar comunicação wifi
+void read_wifi() {
+  if (!client || !client.connected()) {
+    client = server.available();
+    return;
   }
+
+  if (client.available()) {
+    char c = client.read();
+
+    if (c == '\n' || c == '\r') return;
+
+    cmd = c;
+
+    Serial.print("CMD (WiFi): ");
+    Serial.println(cmd);
+
+    client.print("CMD: ");
+    client.println(cmd);
+  }
+}
+void logMsg(const char* msg) {
+  Serial.println(msg);          // debug 
+  if (client && client.connected()) {
+    client.println(msg);        // Wi-Fi
+  }
+}
+
+
   //
 
   void setup() {
+    delay(3000);
       pinMode(TRIG_PIN, OUTPUT);
       pinMode(ECHO_PIN, INPUT_PULLDOWN); 
 
@@ -141,14 +176,27 @@
     moveServo(13,trezepe);       // CALIBRADA EM PÉ -> 90      
     //moveServo(14,90); 
     moveServo(15,90);
-    delay(3000);
+      Serial.println("Ligando ao WiFi...");
+        WiFi.begin(ssid, password);
+        while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+  }
+    Serial.println("\nWiFi ligado!");
+  Serial.print("IP: ");
+  Serial.println(WiFi.localIP());
+
+  server.begin();
+  Serial.println("Servidor TCP iniciado na porta 1234");
+
+  delay(3000);
   }
 
   void loop() {
       //float distance = readUltrasonicCM();
+    read_wifi();
     read_serial();
     fsm_update();
-
   }
   float readUltrasonicCM() {
   unsigned long duration;
@@ -520,10 +568,10 @@ void WalkStep(int velocidade) {
   else if (velocidade ==2)  { delay_servos = 30; incremento = 2; }
   else if (velocidade == 3) { delay_servos = 20; incremento = 5; }
   if (cmd == 's') { fase = 0; stepPos = 0; ResetToNeutral(); set_state(fsm, Aranha_em_pe); return; }
-  if (cmd == 'l') { fase = 0; stepPos = 0; ResetToNeutral();Serial.println("Escolha a velocidade para rodar entre 1 e 3."); set_state(fsm,Aranha_velocidade_rodaresquerda); return; }
-  if (cmd == 'r') { fase = 0; stepPos = 0; ResetToNeutral();Serial.println("Escolha a velocidade para rodar entre 1 e 3."); set_state(fsm,Aranha_velocidade_rodardireita); return; }
-  if (distance != -1 && distance < 15.0){
-    Serial.println("Obstacle detected! Stopping.");
+  if (cmd == 'l') { fase = 0; stepPos = 0; ResetToNeutral();logMsg("Escolha a velocidade para rodar entre 1 e 3."); set_state(fsm,Aranha_velocidade_rodaresquerda); return; }
+  if (cmd == 'r') { fase = 0; stepPos = 0; ResetToNeutral();logMsg("Escolha a velocidade para rodar entre 1 e 3."); set_state(fsm,Aranha_velocidade_rodardireita); return; }
+  if (distance != -1 && distance < 30.0){
+    logMsg("Obstacle detected! Stopping.");
     fase = 0; stepPos = 0; ResetToNeutral(); set_state(fsm, Aranha_em_pe); 
     return;
   }
@@ -665,7 +713,7 @@ void ResetToNeutral() {
       case Aranha_deitada:
         if (cmd == 'l') {     // l no serial monitor faz com que a aranha levante
           set_state(fsm,Aranha_velocidade_levantar);
-          Serial.println("Escolha a velocidade para levantar entre 1 e 3.");
+          logMsg("Escolha a velocidade para levantar entre 1 e 3.");
           //set_state(fsm, Aranha_a_levantar);
         }
         break;
@@ -677,7 +725,7 @@ void ResetToNeutral() {
             set_state(fsm,Aranha_a_levantar);
           }
           else {
-            Serial.println("Velocidade inválida!Escolha uma velocidade entre 1 e 3.");
+            logMsg("Velocidade inválida!Escolha uma velocidade entre 1 e 3.");
           }
         }
         break;
@@ -695,7 +743,7 @@ void ResetToNeutral() {
             set_state(fsm,Aranha_a_deitar);
           }
           else {
-            Serial.println("Velocidade inválida!Escolha uma velocidade entre 1 e 3.");
+            logMsg("Velocidade inválida!Escolha uma velocidade entre 1 e 3.");
           }
         }
         break;
@@ -705,11 +753,12 @@ void ResetToNeutral() {
           if (cmd == '1' || cmd == '2' || cmd == '3') {
             speed_w = cmd - '0';    // se fizessemos simplesmente (int)cmd , o valor não seria 1, por causa da conversão hexadecimal!
             set_state(fsm,Aranha_a_andar);
-            Serial.println("Para parar o robô, utilize a tecla 's'.");
+            logMsg("Para parar o robô, utilize a tecla 's'.");
           }
           else {
-            Serial.println("Velocidade inválida!Escolha uma velocidade entre 1 e 3.");
+            logMsg("Velocidade inválida!Escolha uma velocidade entre 1 e 3.");
           }
+          break;
         }
         break;
        case Aranha_velocidade_rodardireita:
@@ -717,11 +766,12 @@ void ResetToNeutral() {
           if (cmd == '1' || cmd == '2' || cmd == '3') {
             speed_w = cmd - '0';    // se fizessemos simplesmente (int)cmd , o valor não seria 1, por causa da conversão hexadecimal!
             set_state(fsm,Aranha_a_virar_direita);
-            Serial.println("Para parar o robô, utilize a tecla 's'.");
+            logMsg("Para parar o robô, utilize a tecla 's'.");
           }
           else {
-            Serial.println("Velocidade inválida!Escolha uma velocidade entre 1 e 3.");
+            logMsg("Velocidade inválida!Escolha uma velocidade entre 1 e 3.");
           }
+          break;
         }
         break;
         case Aranha_velocidade_rodaresquerda:
@@ -729,29 +779,30 @@ void ResetToNeutral() {
           if (cmd == '1' || cmd == '2' || cmd == '3') {
             speed_w = cmd - '0';    // se fizessemos simplesmente (int)cmd , o valor não seria 1, por causa da conversão hexadecimal!
             set_state(fsm,Aranha_a_virar_esquerda);
-            Serial.println("Para parar o robô, utilize a tecla 's'.");
+            logMsg("Para parar o robô, utilize a tecla 's'.");
           }
           else {
-            Serial.println("Velocidade inválida!Escolha uma velocidade entre 1 e 3.");
+            logMsg("Velocidade inválida!Escolha uma velocidade entre 1 e 3.");
           }
+          break;
         }
 
       case Aranha_em_pe:
         if (cmd == 'd') {     // d no serial monitor faz com que a aranha deite
           set_state(fsm, Aranha_velocidade_deitar);
-          Serial.println("Escolha a velocidade para levantar entre 1 e 3.");
+          logMsg("Escolha a velocidade para levantar entre 1 e 3.");
         }
         if (cmd == 'w') {     // w no serial monitor faz com que a aranha ande
           set_state(fsm,Aranha_velocidade_andar);
-          Serial.println("Escolha a velocidade para andar entre 1 e 3.");
+          logMsg("Escolha a velocidade para andar entre 1 e 3.");
         }
         if(cmd=='l'){
           set_state(fsm,Aranha_velocidade_rodaresquerda);
-          Serial.println("Escolha a velocidade para rodar entre 1 e 3.");
+          logMsg("Escolha a velocidade para rodar entre 1 e 3.");
         }
         if(cmd=='r'){
           set_state(fsm,Aranha_velocidade_rodardireita);
-          Serial.println("Escolha a velocidade para rodar entre 1 e 3.");
+          logMsg("Escolha a velocidade para rodar entre 1 e 3.");
         }
         break;
       
@@ -772,6 +823,7 @@ void ResetToNeutral() {
         TurnR(speed_w);
         break;
     }
+    cmd = 0;  // reset command after processing
   }
   //função para transição de estados
   void set_state(fsm_t &fsm, int new_state) {
