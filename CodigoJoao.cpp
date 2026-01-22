@@ -1,5 +1,6 @@
   #include <Wire.h> 
   #include <Adafruit_PWMServoDriver.h>
+  #include <Arduino.h>
   // Endereço padrão do PCA9685
   #define PCA9685_ADDR 0x40
 
@@ -24,6 +25,15 @@
   #define onzepe 70
   #define dozepe 50
   #define trezepe 90
+
+
+
+
+#define TRIG_PIN 0
+#define ECHO_PIN 1
+
+
+
 
 
 
@@ -74,6 +84,7 @@
   void ResetToNeutral();
   void TurnL(int velocidade);
   void TurnR(int velocidade);
+  float readUltrasonicCM();
 
   // Bloco para utilizarmos o Serial para transição de estados
   char cmd = 0;
@@ -90,6 +101,9 @@
   //
 
   void setup() {
+      pinMode(TRIG_PIN, OUTPUT);
+      pinMode(ECHO_PIN, INPUT_PULLDOWN); 
+
     Serial.begin(115200);
     delay(1000);
     set_state(fsm, Aranha_em_pe);
@@ -131,14 +145,34 @@
   }
 
   void loop() {
-
+      //float distance = readUltrasonicCM();
     read_serial();
     fsm_update();
+
+  }
+  float readUltrasonicCM() {
+  unsigned long duration;
+
+  // Ensure trigger is LOW
+  digitalWrite(TRIG_PIN, LOW);
+  delayMicroseconds(2);
+
+  // Send 10µs trigger pulse
+  digitalWrite(TRIG_PIN, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(TRIG_PIN, LOW);
+
+  // Read echo pulse (30 ms timeout ≈ 5 meters)
+  duration = pulseIn(ECHO_PIN, HIGH, 30000UL);
+
+  // No echo detected
+  if (duration == 0) {
+    return -1.0;  // invalid distance
   }
 
-
-
-
+  // Convert to centimeters
+  return (duration * 0.0343f) / 2.0f;
+}
 
   // Função para mover servo por ângulo (0–180)
   void moveServo(uint8_t channel, uint8_t angle) {
@@ -475,6 +509,7 @@ void TurnL(int velocidade){//Função que faz o robô virar
 }
   //Função que faz robô andar
 void WalkStep(int velocidade) {
+  float distance = readUltrasonicCM();
   int delay_servos, incremento;
   const int AMP_ELBOW = 30;
   const int AMP_SHOULDER = 25;
@@ -487,6 +522,11 @@ void WalkStep(int velocidade) {
   if (cmd == 's') { fase = 0; stepPos = 0; ResetToNeutral(); set_state(fsm, Aranha_em_pe); return; }
   if (cmd == 'l') { fase = 0; stepPos = 0; ResetToNeutral();Serial.println("Escolha a velocidade para rodar entre 1 e 3."); set_state(fsm,Aranha_velocidade_rodaresquerda); return; }
   if (cmd == 'r') { fase = 0; stepPos = 0; ResetToNeutral();Serial.println("Escolha a velocidade para rodar entre 1 e 3."); set_state(fsm,Aranha_velocidade_rodardireita); return; }
+  if (distance != -1 && distance < 15.0){
+    Serial.println("Obstacle detected! Stopping.");
+    fase = 0; stepPos = 0; ResetToNeutral(); set_state(fsm, Aranha_em_pe); 
+    return;
+  }
   if (millis() - lastTime < (unsigned long)delay_servos) return;
   lastTime = millis();
   switch(fase){
