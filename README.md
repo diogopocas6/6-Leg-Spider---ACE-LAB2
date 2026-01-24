@@ -1,7 +1,5 @@
 # Hexapod Robot – Embedded Systems Project
 
-This repository contains the source code developed for a **six-legged (hexapod) robot**, created in the context of an academic project in **Embedded Computing Systems**.
-
 The project focuses on the control of multiple servomotors, implementation of a finite state machine, and communication with the user through Serial and Wi-Fi interfaces.
 
 ---
@@ -41,4 +39,4 @@ The software is written in **C/C++ using the Arduino framework** and is organize
 
 Other files (if present) may include earlier versions or test code.
 
----
+
