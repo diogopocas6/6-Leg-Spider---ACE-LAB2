@@ -29,7 +29,7 @@ The software is written in **C/C++ using the Arduino framework** and is organize
 - Modular movement routines (walk, turn, stand, lay)
 - I2C communication with the PCA9685
 - GPIO-based communication with the HC-SR04 ultrasonic sensor
-- User control via Serial Monitor and Wi-Fi (TCP server)
+- User control via Serial Monitor and Wi-Fi
 
 ---
 
